@@ -39,6 +39,30 @@ class Server:
         self.secret_response = False
         self.extra_visible = []
         self.role = "admin"
+        self.tools = []
+        self.platform = {
+            "features": {
+                "slim": True,
+                "enable_tools": True,
+                "enable_tool_servers": True,
+                "enable_memories": True,
+                "enable_notes": True,
+                "enable_channels": True,
+                "enable_web_search": True,
+                "enable_image_generation": True,
+                "enable_code_interpreter": True,
+                "enable_terminal_servers": True,
+                "enable_automations": True,
+                "enable_calendar": True,
+                "enable_user_webhooks": True,
+                "enable_subagents": True,
+            },
+            "audio": {
+                "stt": {"engine": "openai"},
+                "tts": {"engine": "openai"},
+                "realtime": {"enabled": True, "model": "voice-model", "voice": "test"},
+            },
+        }
 
     def handle(self, request):
         path = request.url.path
@@ -57,6 +81,10 @@ class Server:
             return httpx.Response(200, json={"data": self.gateway})
         if path == "/api/v1/auths/":
             return httpx.Response(200, json={"id": "test-owner", "role": self.role})
+        if path == "/api/v1/tools/":
+            return httpx.Response(200, json=self.tools)
+        if path == "/api/config":
+            return httpx.Response(200, json=self.platform)
         if path == "/openai/config":
             return httpx.Response(
                 200,

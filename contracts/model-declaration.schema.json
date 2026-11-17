@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Proposed DAI model declaration (not a deployed producer contract)",
+  "$comment": "Complete declaration target for M2/M3; Gateway exposes its own effective subset. Adapter currently accepts sparse tri-state capabilities and reports TODOs. No auth values or arbitrary endpoint URLs belong in these descriptions.",
+  "type": "object",
+  "required": [
+    "id",
+    "capabilities"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "name": {
+      "type": "string"
+    },
+    "capabilities": {
+      "type": "object",
+      "required": [
+        "chat",
+        "streaming",
+        "multi_turn",
+        "vision",
+        "tool_calling",
+        "parallel_tool_calls",
+        "json_mode",
+        "json_schema",
+        "reasoning_content",
+        "reasoning_effort",
+        "usage",
+        "audio_input",
+        "audio_output",
+        "video_input",
+        "realtime_audio",
+        "audio_transcription",
+        "audio_speech",
+        "image_generation",
+        "image_editing",
+        "embeddings"
+      ],
+      "properties": {
+        "chat": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "streaming": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "multi_turn": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "vision": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "tool_calling": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "parallel_tool_calls": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "json_mode": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "json_schema": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "reasoning_content": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "reasoning_effort": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "usage": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "audio_input": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "audio_output": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "video_input": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "realtime_audio": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "audio_transcription": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "audio_speech": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "image_generation": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "image_editing": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        },
+        "embeddings": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "unverified",
+            "unsupported"
+          ]
+        }
+      },
+      "additionalProperties": {
+        "type": "string",
+        "enum": [
+          "verified",
+          "unverified",
+          "unsupported"
+        ]
+      }
+    },
+    "interfaces": {
+      "type": "object",
+      "properties": {
+        "chat_completions": {
+          "$ref": "#/$defs/interface"
+        },
+        "realtime": {
+          "$ref": "#/$defs/interface"
+        },
+        "audio_transcriptions": {
+          "$ref": "#/$defs/interface"
+        },
+        "audio_speech": {
+          "$ref": "#/$defs/interface"
+        },
+        "image_generation": {
+          "$ref": "#/$defs/interface"
+        },
+        "image_editing": {
+          "$ref": "#/$defs/interface"
+        },
+        "embeddings": {
+          "$ref": "#/$defs/interface"
+        }
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": "object"
+    },
+    "evidence": {
+      "type": "object",
+      "$comment": "Producer-owned validation metadata, not passed into OpenWebUI presets."
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "interface": {
+      "type": "object",
+      "properties": {
+        "protocol": {
+          "type": "string",
+          "enum": [
+            "openai.chat_completions",
+            "openai.audio.transcriptions",
+            "openai.audio.speech",
+            "openai.images",
+            "openai.embeddings",
+            "openai.realtime"
+          ]
+        },
+        "path": {
+          "type": "string",
+          "pattern": "^/[^?#]*$"
+        },
+        "modalities": {
+          "type": "object",
+          "properties": {
+            "input": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "output": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "streaming": {
+          "type": "boolean"
+        },
+        "limits": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "protocol",
+        "path"
+      ]
+    }
+  }
+}

@@ -17,7 +17,7 @@ openwebui:
   expected_upstream_url: http://host.docker.internal:18100/v1
 publication:
   workspace_prefix: dai.chat.
-  profile: chat
+  profile: auto
 state_dir: /srv/n2830-data/app-data/dai-openwebui-adapter
 timeout_seconds: 30
 allow_empty_catalogue: false

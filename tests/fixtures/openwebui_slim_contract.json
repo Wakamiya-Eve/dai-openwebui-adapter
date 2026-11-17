@@ -1,0 +1,69 @@
+{
+  "schema_version": "openwebui-slim-audited.v1",
+  "audit_date": "2026-11-17",
+  "model_voice_fields": [
+    "voice"
+  ],
+  "instance_audio_sections": [
+    "realtime",
+    "tts",
+    "stt"
+  ],
+  "builtin_categories": [
+    "automations",
+    "calendar",
+    "channels",
+    "chats",
+    "code_interpreter",
+    "files",
+    "image_generation",
+    "knowledge",
+    "memory",
+    "notes",
+    "notifications",
+    "skills",
+    "subagents",
+    "tasks",
+    "time",
+    "tools",
+    "user_input",
+    "web_search"
+  ],
+  "model_capability_fields": [
+    "builtin_tools",
+    "vision",
+    "usage",
+    "web_search",
+    "image_generation",
+    "code_interpreter",
+    "file_upload",
+    "file_context",
+    "memory",
+    "terminal",
+    "citations",
+    "status_updates"
+  ],
+  "routes": {
+    "configuration": "GET /api/config",
+    "callable_tools": "GET /api/v1/tools/"
+  },
+  "source_sha256": {
+    "models/models.py": "6a96356836bad93fed35259df1c2ad0b430d086193357f6bef0254b85d864e30",
+    "routers/configs.py": "eadf54d3795b54643591432d5446a6d71064a8113e14347a11163723c6e9dda9",
+    "routers/images.py": "edd98ffc87212f86bcf7da2c8a581ab6c0fa00d59d757066b94a53680bc14f34",
+    "utils/tools.py": "578a459f97c46aa372ef0ded2966122cec53bf3250fc8e497facea031984d82c",
+    "utils/middleware.py": "a496b46474de6bec6dd3912e537354716eadc314c1cfd012eb6eff987edfb9a7",
+    "main.py": "90c792b6ccf2de4602fdc216d1c06d33dfe9d58d919abddca6611f15c047109e"
+  },
+  "slim_optional_packages": {
+    "torch": false,
+    "transformers": false,
+    "faster_whisper": false,
+    "pydub": false
+  },
+  "sources": [
+    "https://docs.openwebui.com/features/workspace/models/",
+    "https://docs.openwebui.com/features/extensibility/plugin/tools/",
+    "https://docs.openwebui.com/getting-started/quick-start/#why-choose-slim"
+  ]
+}

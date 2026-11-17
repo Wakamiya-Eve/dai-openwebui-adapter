@@ -24,7 +24,7 @@ def document(config):
             "connection_index": config.connection_index,
             "expected_upstream_url": config.expected_upstream_url,
         },
-        "publication": {"workspace_prefix": config.workspace_prefix, "profile": "chat"},
+        "publication": {"workspace_prefix": config.workspace_prefix, "profile": "auto"},
         "state_dir": str(config.state_dir),
     }
 
@@ -50,6 +50,7 @@ def test_config_roundtrip_contains_environment_names_not_values(config, tmp_path
         ("openwebui", "connection_index", True),
         ("openwebui", "connection_index", -1),
         ("publication", "profile", "tools"),
+        ("publication", "profile", "chat"),
         ("publication", "workspace_prefix", "bad namespace"),
         ("", "state_dir", "relative/state"),
         ("", "timeout_seconds", float("nan")),

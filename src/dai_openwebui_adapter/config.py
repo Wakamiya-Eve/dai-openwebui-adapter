@@ -136,8 +136,8 @@ def load_config(path: str | Path) -> Config:
         "openwebui",
     )
     publication = _mapping(raw["publication"], {"workspace_prefix", "profile"}, "publication")
-    if publication["profile"] != "chat":
-        raise AdapterError("This version publishes the plain text chat profile only")
+    if publication["profile"] != "auto":
+        raise AdapterError("publication.profile must be auto (maximal capability intersection)")
     prefix = _text(publication["workspace_prefix"], "workspace_prefix")
     if not re.fullmatch(r"[A-Za-z0-9_.-]+\.", prefix):
         raise AdapterError("workspace_prefix must be a namespace ending in a dot")

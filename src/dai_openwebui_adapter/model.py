@@ -10,7 +10,8 @@ from typing import Any
 from .errors import AdapterError
 
 MANAGER = "dai-openwebui-adapter"
-POLICY = "chat.v1"
+POLICY = "capabilities.v2"
+COMPATIBLE_POLICIES = {"chat.v1", POLICY}
 FORM_KEYS = (
     "id",
     "base_model_id",

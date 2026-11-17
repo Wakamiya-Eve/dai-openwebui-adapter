@@ -24,7 +24,8 @@ def test_two_current_models_create_four_records_and_verify(config, session, serv
         assert server.records[mid]["base_model_id"] is None
         assert server.records["dai.chat." + mid]["base_model_id"] == mid
     assert all(
-        row["meta"]["capabilities"] == {"builtin_tools": False, "vision": False}
+        not row["meta"]["capabilities"]["builtin_tools"]
+        and not row["meta"]["capabilities"]["vision"]
         for row in server.records.values()
     )
     assert verify(config, session)["inference_tested"] is False
@@ -167,8 +168,10 @@ def test_unmanaged_collision_is_never_adopted(config, session, server):
 def test_missing_metadata_does_not_inflate_capabilities(config, session, server):
     server.m3[0]["capabilities"] = {"chat": "verified"}
     plan = observe(config, session).plan
-    assert len(plan["targets"]) == 2
-    assert plan["pending"][0]["reason"] == "plain_chat_and_streaming_must_be_verified"
+    assert len(plan["targets"]) == 4
+    assert plan["negotiation"][MODELS[0]]["features"]["streaming"]["enabled"] is False
+    own = next(row for row in plan["actions"] if row["id"] == MODELS[0])
+    assert own["patch"]["params"]["stream_response"] is False
 
 
 def test_verified_vision_or_tools_do_not_enable_an_untested_profile(config, session, server):

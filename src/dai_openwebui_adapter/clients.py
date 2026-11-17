@@ -60,6 +60,27 @@ def rows(value: Any) -> list[dict]:
     return result
 
 
+def _interfaces(value):
+    if not isinstance(value, dict):
+        raise AdapterError("Model interfaces must be an object")
+    # Interfaces are descriptive protocol contracts; never used as arbitrary request targets.
+    allowed = {
+        "chat_completions",
+        "realtime",
+        "audio_transcriptions",
+        "audio_speech",
+        "image_generation",
+        "image_editing",
+        "embeddings",
+    }
+    result = {}
+    for key in allowed & value.keys():
+        if not isinstance(value[key], dict):
+            raise AdapterError("Model interface declaration must be an object")
+        result[key] = deepcopy(value[key])
+    return result
+
+
 class Sources:
     def __init__(self, m3: API, gateway: API):
         self.m3, self.gateway = m3, gateway
@@ -82,8 +103,25 @@ class Sources:
             name = row.get("name") or row["id"]
             if not isinstance(name, str):
                 raise AdapterError("M3 model display name must be text")
-            models[row["id"]] = {"id": row["id"], "name": name, "capabilities": caps}
-        return {"models": models, "gateway_ids": sorted(row["id"] for row in available)}
+            models[row["id"]] = {
+                "id": row["id"],
+                "name": name,
+                "capabilities": caps,
+                "interfaces": _interfaces(row.get("interfaces", {})),
+            }
+        gateway = {}
+        for row in available:
+            declared = row.get("capabilities", {})
+            if not isinstance(declared, dict) or any(
+                not isinstance(v, str) or v not in {"verified", "unverified", "unsupported"}
+                for v in declared.values()
+            ):
+                raise AdapterError("Gateway capabilities must use tri-state declarations")
+            gateway[row["id"]] = {
+                "capabilities": declared,
+                "interfaces": _interfaces(row.get("interfaces", {})),
+            }
+        return {"models": models, "gateway_ids": sorted(gateway), "gateway": gateway}
 
 
 class OpenWebUI:
@@ -173,6 +211,34 @@ class OpenWebUI:
             "selected_ids": sorted(selected_ids),
             "prefix": selected_prefix,
         }
+
+    def platform(self):
+        from .capabilities import platform_snapshot
+
+        value = self.api.request("GET", "api/config")
+        return platform_snapshot(value)
+
+    def tools(self):
+        value = self.api.request("GET", "api/v1/tools/")
+        if not isinstance(value, list) or len(value) > MAX_MODELS:
+            raise AdapterError("Unsupported OpenWebUI callable-tool catalogue")
+        available, excluded = [], []
+        seen = set()
+        for row in value:
+            if not isinstance(row, dict) or not valid_id(row.get("id")) or row["id"] in seen:
+                raise AdapterError("Invalid or duplicate callable tool ID")
+            seen.add(row["id"])
+            if any(
+                key in row and row[key] is not None and type(row[key]) is not bool
+                for key in ("is_active", "authenticated")
+            ):
+                raise AdapterError("Invalid callable-tool availability flag")
+            if row.get("is_active") is False or row.get("authenticated") is False:
+                excluded.append(row["id"])
+            else:
+                available.append(row["id"])
+        # Never retain plugin source, valve values, tool arguments or server credentials.
+        return {"available": sorted(available), "excluded": sorted(excluded)}
 
     def get(self, mid: str):
         record = self.api.request("GET", "api/v1/models/model", params={"id": mid}, missing=True)

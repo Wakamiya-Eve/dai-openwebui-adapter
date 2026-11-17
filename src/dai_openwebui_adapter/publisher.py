@@ -206,4 +206,9 @@ def verify(config, session):
         "records": len(plan["targets"]),
         "inference_tested": False,
         "browser_acceptance_required": True,
+        "capabilities": {
+            mid: sorted(name for name, item in value["features"].items() if item["enabled"])
+            for mid, value in plan["negotiation"].items()
+        },
+        "todos": {mid: value["todos"] for mid, value in plan["negotiation"].items()},
     }

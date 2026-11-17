@@ -6,6 +6,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 
 from .clients import Session
+from .capabilities import negotiate
 from .config import Config
 from .errors import AdapterError, Conflict
 from .model import digest, marker, form
@@ -23,6 +24,7 @@ class Observation:
 def observe(config: Config, session: Session) -> Observation:
     source = session.sources.read(allow_empty=config.allow_empty_catalogue)
     connection = session.web.connection(config)
+    platform = session.web.platform()
     listed = session.web.stored()
     records = {}
 
@@ -32,15 +34,38 @@ def observe(config: Config, session: Session) -> Observation:
         return records[mid]
 
     available = set(source["gateway_ids"])
-    eligible, pending = [], []
+    eligible, pending, negotiations = [], [], {}
     for mid, model in sorted(source["models"].items()):
         caps = model["capabilities"]
+        negotiations[mid] = negotiate(
+            model,
+            source["gateway"].get(mid, {"capabilities": {}, "interfaces": {}, "available": False}),
+            platform,
+        )
         if mid not in available:
             pending.append({"id": mid, "reason": "not_available_in_agent_gateway"})
-        elif caps.get("chat") != "verified" or caps.get("streaming") != "verified":
-            pending.append({"id": mid, "reason": "plain_chat_and_streaming_must_be_verified"})
+        elif caps.get("chat") != "verified":
+            pending.append(
+                {
+                    "id": mid,
+                    "reason": "chat_must_be_verified; auxiliary_service_model_requires_role_binding",
+                }
+            )
+        elif not negotiations[mid]["features"]["chat"]["enabled"]:
+            pending.append({"id": mid, "reason": "gateway_chat_capability_unavailable"})
         else:
             eligible.append(model)
+    tools = (
+        session.web.tools()
+        if any(
+            negotiations[model["id"]]["features"]["tool_calling"]["enabled"] for model in eligible
+        )
+        else {"available": [], "excluded": []}
+    )
+    for value in negotiations.values():
+        value["tool_ids"] = (
+            tools["available"] if value["features"]["tool_calling"]["enabled"] else []
+        )
     desired_ids, actions, targets = set(), [], []
     for model in eligible:
         mid = model["id"]
@@ -53,7 +78,7 @@ def observe(config: Config, session: Session) -> Observation:
         if workspace in connection["ownership"]:
             raise Conflict("Workspace preset ID collides with an upstream base model")
         for kind in ("base_override", "workspace_preset"):
-            desired = patch(config, model, base, kind)
+            desired = patch(config, model, base, kind, negotiations[mid])
             target = desired["id"]
             if target in desired_ids:
                 raise Conflict("Publication IDs collide")
@@ -107,6 +132,9 @@ def observe(config: Config, session: Session) -> Observation:
         "scope": config.scope,
         "source_hash": digest(source),
         "connection_hash": digest(connection),
+        "platform_hash": digest(platform),
+        "negotiation": negotiations,
+        "tools_hash": digest(tools),
         "pending": pending,
         "targets": targets,
         "actions": actions,
