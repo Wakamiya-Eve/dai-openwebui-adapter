@@ -1,3 +1,11 @@
+## 0.3.0 (development, not deployed)
+
+- Consume complete, paginated L4 capability catalogues with no M3 credentials.
+- Derive OpenWebUI features, callable tools, limits and parameters per model.
+- Preserve unknown source data and invalidate plans on semantic contract changes.
+- Keep polling timestamps from invalidating otherwise identical reviewed plans.
+- Retain explicit plan/apply/verify/rollback and owner/access checks.
+
 # Changelog
 
 ## 0.2.0

@@ -81,8 +81,8 @@ def test_shipped_example_is_valid():
 
 
 def test_missing_credentials_error_is_safe(config, monkeypatch):
-    monkeypatch.delenv("M3_KEY")
-    with pytest.raises(AdapterError, match="M3_KEY"):
+    monkeypatch.delenv("GW_KEY")
+    with pytest.raises(AdapterError, match="GW_KEY"):
         with Session(config):
             pass
 
@@ -150,4 +150,4 @@ def test_redirects_are_not_followed_with_credentials(config):
     with Session(config, transport=httpx.MockTransport(redirect)) as session:
         with pytest.raises(AdapterError, match="302"):
             observe(config, session)
-    assert calls == ["m3.test"]
+    assert calls == ["gateway.test"]

@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "L4 capability catalogue consumed by the OpenWebUI publisher",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "upstream",
+    "data",
+    "offset",
+    "limit",
+    "total",
+    "next_offset",
+    "registry_revision"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "m4.capability-catalogue.v1"
+    },
+    "upstream": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "data"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "m3.capability-catalogue.v1"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "providers"
+            ]
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "source_pointer",
+          "gateway"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_pointer": {
+            "type": "string",
+            "pattern": "^/upstream/data/[0-9]+$"
+          },
+          "gateway": {
+            "type": "object",
+            "required": [
+              "available",
+              "model_capabilities",
+              "capabilities"
+            ],
+            "properties": {
+              "available": {
+                "type": "boolean"
+              },
+              "model_capabilities": {
+                "$ref": "#/$defs/states"
+              },
+              "capabilities": {
+                "$ref": "#/$defs/states"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "offset": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "limit": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "total": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "next_offset": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "registry_revision": {
+      "type": "string"
+    }
+  },
+  "$defs": {
+    "states": {
+      "type": "object",
+      "additionalProperties": {
+        "enum": [
+          "verified",
+          "unverified",
+          "unsupported"
+        ]
+      }
+    }
+  },
+  "additionalProperties": true
+}

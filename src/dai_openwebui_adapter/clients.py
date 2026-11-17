@@ -11,7 +11,7 @@ from .config import Config, Endpoint
 from .errors import AdapterError, Conflict
 from .model import form, valid_id
 
-MAX_BYTES = 8 * 1024 * 1024
+MAX_BYTES = 32 * 1024 * 1024
 MAX_MODELS = 10000
 
 
@@ -82,46 +82,12 @@ def _interfaces(value):
 
 
 class Sources:
-    def __init__(self, m3: API, gateway: API):
-        self.m3, self.gateway = m3, gateway
+    def __init__(self, gateway: API):
+        self.gateway = gateway
 
     def read(self, *, allow_empty=False):
-        raw = rows(self.m3.request("GET", "models"))
-        available = rows(self.gateway.request("GET", "models"))
-        if not allow_empty and (not raw or not available):
-            raise Conflict(
-                "Empty source catalogue requires explicit allow_empty_catalogue configuration"
-            )
-        models = {}
-        for row in raw:
-            caps = row.get("capabilities")
-            if not isinstance(caps, dict) or any(
-                not isinstance(value, str) or value not in {"verified", "unverified", "unsupported"}
-                for value in caps.values()
-            ):
-                raise AdapterError("M3 model capabilities must use tri-state declarations")
-            name = row.get("name") or row["id"]
-            if not isinstance(name, str):
-                raise AdapterError("M3 model display name must be text")
-            models[row["id"]] = {
-                "id": row["id"],
-                "name": name,
-                "capabilities": caps,
-                "interfaces": _interfaces(row.get("interfaces", {})),
-            }
-        gateway = {}
-        for row in available:
-            declared = row.get("capabilities", {})
-            if not isinstance(declared, dict) or any(
-                not isinstance(v, str) or v not in {"verified", "unverified", "unsupported"}
-                for v in declared.values()
-            ):
-                raise AdapterError("Gateway capabilities must use tri-state declarations")
-            gateway[row["id"]] = {
-                "capabilities": declared,
-                "interfaces": _interfaces(row.get("interfaces", {})),
-            }
-        return {"models": models, "gateway_ids": sorted(gateway), "gateway": gateway}
+        from .catalogue import read_catalogue
+        return read_catalogue(self.gateway, allow_empty=allow_empty)
 
 
 class OpenWebUI:
@@ -311,13 +277,13 @@ class Session:
     def __init__(self, config: Config, *, transport=None):
         self.apis = []
         try:
-            for endpoint in (config.m3, config.gateway, config.openwebui):
+            for endpoint in (config.gateway, config.openwebui):
                 self.apis.append(API(endpoint, config.timeout_seconds, transport=transport))
         except BaseException:
             self.close()
             raise
-        self.sources = Sources(*self.apis[:2])
-        self.web = OpenWebUI(self.apis[2])
+        self.sources = Sources(self.apis[0])
+        self.web = OpenWebUI(self.apis[1])
 
     def close(self):
         for api in self.apis:

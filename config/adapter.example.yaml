@@ -1,10 +1,7 @@
 # Example only. Do not reuse these URLs without checking the OpenWebUI connection.
-schema_version: dai.openwebui-adapter.v1
+schema_version: dai.openwebui-adapter.v2
 source_id: n2830-dai
 sources:
-  m3:
-    url: http://127.0.0.1:38197/v1
-    api_key_env: M3_API_KEY
   gateway:
     url: http://127.0.0.1:8100/v1
     api_key_env: AGENT_GATEWAY_API_KEY
@@ -19,5 +16,5 @@ publication:
   workspace_prefix: dai.chat.
   profile: auto
 state_dir: /srv/n2830-data/app-data/dai-openwebui-adapter
-timeout_seconds: 30
+timeout_seconds: 90
 allow_empty_catalogue: false

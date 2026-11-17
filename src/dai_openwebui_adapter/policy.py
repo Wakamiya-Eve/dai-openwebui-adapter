@@ -60,8 +60,14 @@ def patch(config: Config, model: dict, base_id: str, kind: str, negotiated: dict
                 "profile": "auto",
                 "policy": POLICY,
                 "capability_digest": digest(
-                    {"model": model["capabilities"], "effective": negotiated}
+                    {"model": model["capabilities"], "effective": negotiated,
+                     "source_revision": model.get("capability_revision")}
                 ),
+                "source_schema": "m4.capability-catalogue.v1",
+                "source_revision": model.get("capability_revision"),
+                "limits": deepcopy(model.get("limits", {})),
+                "parameters": deepcopy(model.get("parameters", {})),
+                "capability_evidence": deepcopy(model.get("evidence", {})),
                 "enabled_features": sorted(
                     name for name, value in negotiated["features"].items() if value["enabled"]
                 ),

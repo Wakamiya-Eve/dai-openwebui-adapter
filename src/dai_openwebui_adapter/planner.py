@@ -55,13 +55,18 @@ def observe(config: Config, session: Session) -> Observation:
             pending.append({"id": mid, "reason": "gateway_chat_capability_unavailable"})
         else:
             eligible.append(model)
+    features = platform["features"]
     tools = (
         session.web.tools()
         if any(
             negotiations[model["id"]]["features"]["tool_calling"]["enabled"] for model in eligible
-        )
+        ) and (features.get("enable_tools", False) or features.get("enable_tool_servers", False))
         else {"available": [], "excluded": []}
     )
+    disabled = [mid for mid in tools["available"]
+                if not features.get("enable_tool_servers" if mid.startswith("server:") else "enable_tools", False)]
+    tools["available"] = sorted(set(tools["available"]) - set(disabled))
+    tools["excluded"] = sorted(set(tools["excluded"]) | set(disabled))
     for value in negotiations.values():
         value["tool_ids"] = (
             tools["available"] if value["features"]["tool_calling"]["enabled"] else []
@@ -130,7 +135,7 @@ def observe(config: Config, session: Session) -> Observation:
         "schema_version": SCHEMA,
         "config_hash": config.fingerprint,
         "scope": config.scope,
-        "source_hash": digest(source),
+        "source_hash": source["revision"],
         "connection_hash": digest(connection),
         "platform_hash": digest(platform),
         "negotiation": negotiations,

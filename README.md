@@ -1,13 +1,34 @@
-# DAI OpenWebUI Adapter
+# OpenWebUI capability publisher
 
-独立的 **配置发布组件**：读取 M3 模型能力与 Agent Career Hub Gateway 的可用模型清单，通过 OpenWebUI 管理 API 发布每个模型的最大可用能力交集。它不代理推理，不操作 SSH、GPU、模型进程或 systemd，也不更改两个共享网关。
+当前开发版通过 Agent Career Hub Gateway 的新能力接口获取完整第三层声明，
+只适配 OpenWebUI；它是配置发布工具，不是推理代理。
+
+- 唯一模型来源：第四层 `GET /v1/model-capabilities`（`m4.capability-catalogue.v1`）。
+- `upstream` 完整保留第三层/Worker 来源，adapter 读完分页并检查注册表版本。
+- 每次计划和重验证请求 `refresh=true`，不启动模型；模型停止时不伪造运行时能力。
+- 模型声明 ∩ 第四层可执行协议 ∩ OpenWebUI 实例功能/工具目录，逐模型计算交集。
+- 完整来源保留在读取结果中；发布计划只保存语义哈希、证据、限制和参数，不复制模板正文。
+- 采集时间/request_id/age 等已知轮询字段不引起计划失效；能力、未知扩展、路由、
+  新鲜度状态、参数、实例功能或工具目录改变，都会要求重新审阅。
+
+配置示例已升级为 v2，只需要 `sources.gateway` 和 OpenWebUI 管理凭据。
+旧 v1 配置仍可加载；其中 `sources.m3` 已弃用且不会被访问，也无需其密钥。
+第四层必须先部署新接口；adapter 不会回退到有损的旧 `/models` 或直接访问第三层。
+原有 OpenWebUI 连接仍使用第四层标准 `/v1`，基础模型发现调用方式不变。
+
+模型运行后，先刷新声明，再 `plan → 审阅 → apply → verify → 浏览器验收`。
+本轮仅开发和离线验证，未发布生产配置或调用真实模型。
+
+## 已有发布与回滚规范
+
+独立的 **配置发布组件**：读取 Agent Career Hub Gateway 的完整模型能力目录，通过 OpenWebUI 管理 API 发布每个模型的最大可用能力交集。它不代理推理，不操作 SSH、GPU、模型进程或 systemd，也不更改两个共享网关。
 
 ```text
 推理：OpenWebUI -> Agent Gateway -> M3 -> Worker
-配置：M3 能力 + Agent Gateway 清单 -> 本组件 -> OpenWebUI 模型管理 API
+配置：M3 完整声明 -> Agent Gateway 能力接口 -> 本组件 -> OpenWebUI 模型管理 API
 ```
 
-当前版本 **0.2.0** 默认 `publication.profile: auto`，逐模型协商，不再把视觉、工具等能力固定关闭。计划中同时显示模型与 OpenWebUI 的候选交集、实际网关链路能启用的交集，以及缺失声明/绑定的 TODO。`verified` 才进入交集，`unverified`、缺字段和 `unsupported` 不会因模型名称或 UI 默认值被提升。
+当前开发版本 **0.3.0** 默认 `publication.profile: auto`，逐模型协商，不再把视觉、工具等能力固定关闭。计划中同时显示模型与 OpenWebUI 的候选交集、实际网关链路能启用的交集，以及缺失声明/绑定的 TODO。`verified` 才进入交集，`unverified`、缺字段和 `unsupported` 不会因模型名称或 UI 默认值被提升。
 
 对具备已验证聊天链路的模型发布：
 
@@ -35,7 +56,7 @@ python -m venv .venv
 
 从 [config/adapter.example.yaml](config/adapter.example.yaml) 建立本机配置。该样例是本项目实际接受的 schema；早期架构问答中的设计 YAML 不是运行配置。
 
-- `sources.m3.url`、`sources.gateway.url` 指向各自 `/v1` 根地址。
+- `sources.gateway.url` 指向第四层 `/v1` 根地址，配置不再需要第三层地址或密钥。
 - `openwebui.url` 指向 OpenWebUI 服务根地址，不带 `/api/v1/models`。
 - `connection_index` 是 OpenWebUI 中目标 OpenAI 连接的索引。
 - `expected_upstream_url` 必须等于该连接保存的 URL；从 Docker 内部访问的代理地址可能与 `sources.gateway.url` 不同。样例地址不代表当前生产配置。
@@ -104,16 +125,19 @@ dai-openwebui --config adapter.yaml verify
 - 本机 `ModelVoice` 只有 `voice` 音色字段，没有逐模型原生音频/Realtime 的 provider/model/route 绑定；因此 `audio_input/audio_output/realtime_audio` 的声明会保留并输出绑定 TODO，不伪造 `capabilities.audio=true`。
 - ASR、TTS、绘图、编辑和 embedding 模型是实例服务角色，不能仅创建一个聊天预设就算接入。协商已预留角色/接口描述和显式 TODO，本版不修改全局 STT/TTS/Realtime/绘图/embedding 配置，也不擅自决定多个候选服务谁覆盖谁。
 
-### 下层尚缺的声明与接口
+### 当前输入合同与仍需服务绑定的能力
 
-当前两个生产模型的 M3 只声明 chat、streaming、multi_turn、reasoning_content、tool_calling、json_schema 六类状态，尚无完整视觉/音频等声明；Agent Gateway 的 `/v1/models` 只给标准 ID 列表，未输出有效能力。本版不修改这些生产组件。
+本版读取 `m4.capability-catalogue.v1`；完整第三层 `m3.capability-catalogue.v1`
+位于 `upstream`。第四层的逐模型视图通过 `source_pointer` 关联来源。
+模型声明、网关执行能力、新鲜度和历史验证各自保留，不把其他 Provider
+的能力简单相加，也不把未知声明当作支持。
 
-1. **Worker/M2 → M3**：逐逻辑模型补齐能力三态、输入/输出模态、上下文与多模态限制、协议和验证证据；尤其区分原生视觉/音频和应用外挂服务。M3 应完整暴露合并后的有效声明，不能只从模型名称猜测。
-2. **M3 与服务网关接口**：为已验证的 ASR/TTS/Realtime/绘图/embedding 暴露实际协议、受控相对路由、角色与模型选择语义、流式/非流式和错误约定。适配器预留 `interfaces`，仅作描述，不把声明中的 URL 当成任意 HTTP 目标。
-3. **Agent Gateway/M4**：输出经过自身约束后的 `capabilities`，并说明图文消息、tools/tool_choice/tool results、parallel calls、response_format、reasoning、usage、音频等哪些可穿过该链路。M3 verified 不代表 M4 已支持。旧 ID-only 列表仅兼容既有聊天/流式/多轮基线；其他候选会列 `gateway.capabilities.*` TODO，不要求再修改适配器的白名单开关。
-4. **服务角色绑定**：原生音视频还需要当前 OpenWebUI 逐模型绑定契约；实例服务需要显式的选择/冲突与回滚契约。缺失项逐模型输出，不冒充普通聊天发布成功。
+ASR/TTS/Realtime/绘图/embedding 仍需各层实际执行路由和应用服务角色绑定；
+能力元数据存在不等于执行接口存在。它们会保留声明和缺项说明，不会仅靠聊天预设启用。
 
-[contracts/model-declaration.schema.json](contracts/model-declaration.schema.json) 给出能力字段与描述接口的**下层提案**，不是生产已经实现的 schema，也不是本组件强制完整字段的输入门槛。当前仍兼容稀疏三态能力，缺字段输出 TODO。测试中的完整能力数据是合成数据，不代表两个生产模型具备这些能力。
+[contracts/l4-capability-catalogue.schema.json](contracts/l4-capability-catalogue.schema.json)
+描述当前版本化输入边界。[旧提案](contracts/model-declaration.schema.json) 只保留为
+历史设计记录，不作为当前运行输入。合成测试中的能力不代表现场模型已实测具备。
 
 ### 从 0.1.0 升级
 

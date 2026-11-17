@@ -133,7 +133,7 @@ def negotiate(model, gateway, platform):
         supported = _platform(name, platform)
         candidate = state == "verified" and supported
         route = _state(routed, name)
-        legacy = gateway.get("available", True) and not routed and name in LEGACY_GATEWAY
+        legacy = False  # The versioned L4 contract must declare every executable feature.
         effective = candidate and gateway.get("available", True) and (route == "verified" or legacy)
         missing = []
         if name not in declared:

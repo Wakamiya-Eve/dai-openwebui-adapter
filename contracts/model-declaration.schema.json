@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Proposed DAI model declaration (not a deployed producer contract)",
-  "$comment": "Complete declaration target for M2/M3; Gateway exposes its own effective subset. Adapter currently accepts sparse tri-state capabilities and reports TODOs. No auth values or arbitrary endpoint URLs belong in these descriptions.",
+  "$comment": "Historical v0.2 proposal only. Current runtime input is m4.capability-catalogue.v1; see l4-capability-catalogue.schema.json. No credential values belong in declarations.",
   "type": "object",
   "required": [
     "id",

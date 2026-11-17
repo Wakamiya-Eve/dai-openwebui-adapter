@@ -74,11 +74,44 @@ class Server:
         }[request.url.host]
         assert request.headers["authorization"] == "Bearer " + token
         if request.url.host == "m3.test":
+            raise AssertionError("Adapter must only consume L4, never call M3 directly")
+        if request.url.host == "gateway.test":
+            assert path == "/v1/model-capabilities"
             if self.fail_source:
                 return httpx.Response(503, text="synthetic-secret-never-print")
-            return httpx.Response(200, json={"data": self.m3})
-        if request.url.host == "gateway.test":
-            return httpx.Response(200, json={"data": self.gateway})
+            raw, views = [], []
+            gateway = {row["id"]: row for row in self.gateway}
+            for index, row in enumerate(self.m3):
+                caps = row.get("capabilities")
+                serving = gateway.get(row["id"])
+                raw.append({
+                    "schema_version": "m3.capability-catalogue.v1", "id": row["id"],
+                    "model": {"display_name": row.get("name", row["id"])},
+                    "future": deepcopy(row.get("future", {})),
+                    "providers": [{"provider_id": "provider-" + row["id"],
+                                   "collection": {"current": True, "expired": False,
+                                                  "age_seconds": len(self.calls), "attempted_at": str(len(self.calls))},
+                                   "worker_response": {"request_id": str(len(self.calls)), "result": {
+                                       "capabilities": {"observed_at": str(len(self.calls)), "future": 42}}},
+                                   "normalized": {"inference_routed": serving is not None,
+                                                  "interfaces": row.get("interfaces", {}),
+                                                  "capabilities": caps}}],
+                })
+                route_caps = (serving.get("capabilities", {
+                    name: "verified" for name in ("chat", "streaming", "multi_turn")
+                }) if serving else {})
+                views.append({"id": row["id"], "source_pointer": f"/upstream/data/{index}",
+                              "gateway": {"available": serving is not None, "model_capabilities": caps,
+                                          "capabilities": route_caps,
+                                          "interfaces": (serving or {}).get("interfaces", {}),
+                                          "limits": {"context_tokens": 131072},
+                                          "parameters": {"defaults": {"repeat_penalty": 1.1}}}})
+            return httpx.Response(200, json={
+                "schema_version": "m4.capability-catalogue.v1", "registry_revision": "test-revision",
+                "upstream": {"schema_version": "m3.capability-catalogue.v1", "data": raw,
+                             "registry_revision": "test-revision", "generated_at": str(len(self.calls))},
+                "data": views, "offset": 0, "limit": 100, "total": len(raw), "next_offset": None,
+            })
         if path == "/api/v1/auths/":
             return httpx.Response(200, json={"id": "test-owner", "role": self.role})
         if path == "/api/v1/tools/":

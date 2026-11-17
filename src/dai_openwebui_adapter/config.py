@@ -31,14 +31,14 @@ class Endpoint:
 @dataclass(frozen=True)
 class Config:
     source_id: str
-    m3: Endpoint
+    m3: Endpoint | None  # Deprecated v1 input; never contacted.
     gateway: Endpoint
     openwebui: Endpoint
     connection_index: int
     expected_upstream_url: str
     workspace_prefix: str
     state_dir: Path
-    timeout_seconds: float = 30
+    timeout_seconds: float = 90
     allow_empty_catalogue: bool = False
 
     def document(self) -> dict:
@@ -124,12 +124,14 @@ def load_config(path: str | Path) -> Config:
         or set(raw) - required - {"timeout_seconds", "allow_empty_catalogue"}
     ):
         raise AdapterError("Invalid top-level configuration fields")
-    if raw["schema_version"] != "dai.openwebui-adapter.v1":
+    if raw["schema_version"] not in {"dai.openwebui-adapter.v1", "dai.openwebui-adapter.v2"}:
         raise AdapterError("Unsupported configuration schema_version")
     source = _text(raw["source_id"], "source_id")
     if not re.fullmatch(r"[A-Za-z0-9_.-]+", source):
         raise AdapterError("Invalid source_id")
-    sources = _mapping(raw["sources"], {"m3", "gateway"}, "sources")
+    sources = raw["sources"]
+    if not isinstance(sources, dict) or set(sources) not in ({"gateway"}, {"m3", "gateway"}):
+        raise AdapterError("sources must contain gateway (m3 is a deprecated optional input)")
     web = _mapping(
         raw["openwebui"],
         {"url", "api_key_env", "connection_index", "expected_upstream_url"},
@@ -144,7 +146,7 @@ def load_config(path: str | Path) -> Config:
     index = web["connection_index"]
     if type(index) is not int or index < 0:
         raise AdapterError("connection_index must be a non-negative integer")
-    timeout = raw.get("timeout_seconds", 30)
+    timeout = raw.get("timeout_seconds", 90)
     if type(timeout) not in (int, float) or not 0 < timeout <= 300:
         raise AdapterError("timeout_seconds must be between 0 and 300")
     empty = raw.get("allow_empty_catalogue", False)
@@ -155,7 +157,7 @@ def load_config(path: str | Path) -> Config:
         raise AdapterError("state_dir must be absolute")
     return Config(
         source,
-        _endpoint(sources["m3"], "sources.m3"),
+        _endpoint(sources["m3"], "sources.m3") if "m3" in sources else None,
         _endpoint(sources["gateway"], "sources.gateway"),
         _endpoint({k: web[k] for k in ("url", "api_key_env")}, "openwebui"),
         index,
