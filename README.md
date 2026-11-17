@@ -17,7 +17,7 @@
 原有 OpenWebUI 连接仍使用第四层标准 `/v1`，基础模型发现调用方式不变。
 
 模型运行后，先刷新声明，再 `plan → 审阅 → apply → verify → 浏览器验收`。
-本轮仅开发和离线验证，未发布生产配置或调用真实模型。
+真实推理和浏览器验收须在实际部署后单独执行。
 
 ## 已有发布与回滚规范
 
@@ -28,7 +28,12 @@
 配置：M3 完整声明 -> Agent Gateway 能力接口 -> 本组件 -> OpenWebUI 模型管理 API
 ```
 
-当前开发版本 **0.3.0** 默认 `publication.profile: auto`，逐模型协商，不再把视觉、工具等能力固定关闭。计划中同时显示模型与 OpenWebUI 的候选交集、实际网关链路能启用的交集，以及缺失声明/绑定的 TODO。`verified` 才进入交集，`unverified`、缺字段和 `unsupported` 不会因模型名称或 UI 默认值被提升。
+当前版本 **0.3.1** 默认 `publication.profile: auto`，逐模型协商，不再把视觉、工具等能力固定关闭。计划中同时显示模型与 OpenWebUI 的候选交集、实际网关链路能启用的交集，以及缺失声明/绑定的 TODO。`verified` 才进入交集，`unverified`、缺字段和 `unsupported` 不会因模型名称或 UI 默认值被提升。
+
+已授权的无人值守同步通过 `python -m dai_openwebui_adapter.sync --config adapter.yaml`
+执行：先计划，有差异才 apply，无差异完全不调用 apply，最后只读 verify。
+N2830 oneshot、24 小时 timer、凭据和恢复规范见
+[部署说明](deploy/n2830/README.md)。原有逐次 plan/apply 命令继续可用。
 
 对具备已验证聊天链路的模型发布：
 
@@ -80,7 +85,7 @@ python -m venv .venv
 
 ## 非交互式命令
 
-以下命令仅为使用说明。本项目开发期间未对生产 OpenWebUI 执行 apply。
+以下命令用于逐次发布；无人值守同步见 N2830 部署说明。
 
 ```bash
 dai-openwebui --config adapter.yaml plan --output review.plan.json
@@ -161,7 +166,7 @@ dai-openwebui --config adapter.yaml rollback --journal /absolute/state/journals/
 
 上线前还需要：确认实际管理 API/凭据与连接索引，先 plan 审阅，再应用到受控范围，在 OpenWebUI 普通聊天界面验证两个模型的流式与非流式回答，最后才启用计划任务。OpenWebUI 内部 note 聊天可能强制注入工具，不在本版普通聊天支持范围内。代码不会通过静默丢弃请求工具或放宽共享网关能力校验来兼容该模式。
 
-此仓库不安装/启动服务、不写生产数据库、不配置反向代理、不改变共享网关或 OpenWebUI 的上游连接地址。部署与真实模型验收是后续独立步骤。
+CLI 自身不安装/启动 systemd 服务，不配置反向代理，也不改变共享网关或 OpenWebUI 的上游连接地址。服务单元和外层同步脚本位于 deploy/n2830，部署与真实模型验收单独进行。
 
 ## 官方依据与可复核契约
 

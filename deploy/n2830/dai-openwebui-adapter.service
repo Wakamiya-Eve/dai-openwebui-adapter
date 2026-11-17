@@ -1,0 +1,28 @@
+[Unit]
+Description=Reconcile DAI capabilities into OpenWebUI
+Wants=network-online.target agent-career-hub-gateway.service docker.service
+After=network-online.target agent-career-hub-gateway.service docker.service
+
+[Service]
+Type=oneshot
+User=kms0723online
+Group=kms0723online
+WorkingDirectory=/opt/dai-openwebui-adapter/current
+Environment=PYTHONPATH=/opt/dai-openwebui-adapter/current/src
+Environment=PYTHONNOUSERSITE=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+EnvironmentFile=/etc/dai-openwebui-adapter/credentials.env
+UnsetEnvironment=PYTHONHOME
+ExecStartPre=/opt/dai-openwebui-adapter/venv/bin/python -m dai_openwebui_adapter.ready --config /etc/dai-openwebui-adapter/adapter.yaml
+ExecStart=/bin/bash /opt/dai-openwebui-adapter/current/deploy/n2830/sync.sh
+TimeoutStartSec=10min
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/n2830-data/app-data/dai-openwebui-adapter
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

@@ -1,4 +1,10 @@
-## 0.3.0 (development, not deployed)
+## 0.3.1
+
+- Add an authorized unattended sync wrapper: no actions means no apply call.
+- Retain conflict checks, recovery journals and read-back verification.
+- Add bounded HTTP readiness and an N2830 oneshot/24-hour timer deployment.
+
+## 0.3.0
 
 - Consume complete, paginated L4 capability catalogues with no M3 credentials.
 - Derive OpenWebUI features, callable tools, limits and parameters per model.

@@ -76,6 +76,8 @@ class Server:
         if request.url.host == "m3.test":
             raise AssertionError("Adapter must only consume L4, never call M3 directly")
         if request.url.host == "gateway.test":
+            if path == "/v1/models":
+                return httpx.Response(200, json={"data": deepcopy(self.gateway)})
             assert path == "/v1/model-capabilities"
             if self.fail_source:
                 return httpx.Response(503, text="synthetic-secret-never-print")

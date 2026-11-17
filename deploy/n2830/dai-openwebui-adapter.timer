@@ -1,0 +1,11 @@
+[Unit]
+Description=Reconcile OpenWebUI model capabilities every 24 hours
+
+[Timer]
+OnActiveSec=24h
+OnUnitActiveSec=24h
+AccuracySec=1min
+Unit=dai-openwebui-adapter.service
+
+[Install]
+WantedBy=timers.target
