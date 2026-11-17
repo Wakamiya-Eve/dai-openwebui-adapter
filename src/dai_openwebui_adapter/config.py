@@ -40,6 +40,7 @@ class Config:
     state_dir: Path
     timeout_seconds: float = 90
     allow_empty_catalogue: bool = False
+    snapshot_path: str | None = None
 
     def document(self) -> dict:
         value = asdict(self)
@@ -132,8 +133,11 @@ def load_config(path: str | Path) -> Config:
     sources = raw["sources"]
     if not isinstance(sources, dict) or set(sources) not in ({"gateway"}, {"m3", "gateway"}):
         raise AdapterError("sources must contain gateway (m3 is a deprecated optional input)")
+    web_raw = raw["openwebui"]
+    if not isinstance(web_raw, dict):
+        raise AdapterError("Invalid openwebui configuration")
     web = _mapping(
-        raw["openwebui"],
+        {k: v for k, v in web_raw.items() if k != "snapshot_path"},
         {"url", "api_key_env", "connection_index", "expected_upstream_url"},
         "openwebui",
     )
@@ -155,6 +159,11 @@ def load_config(path: str | Path) -> Config:
     state = Path(_text(raw["state_dir"], "state_dir")).expanduser()
     if not state.is_absolute():
         raise AdapterError("state_dir must be absolute")
+    snapshot = web_raw.get("snapshot_path")
+    if snapshot is not None:
+        snapshot = _text(snapshot, "openwebui.snapshot_path")
+        if not Path(snapshot).is_absolute():
+            raise AdapterError("snapshot_path must be absolute")
     return Config(
         source,
         _endpoint(sources["m3"], "sources.m3") if "m3" in sources else None,
@@ -166,4 +175,5 @@ def load_config(path: str | Path) -> Config:
         state,
         float(timeout),
         empty,
+        snapshot,
     )

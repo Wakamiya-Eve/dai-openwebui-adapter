@@ -87,17 +87,23 @@ class Sources:
 
     def read(self, *, allow_empty=False):
         from .catalogue import read_catalogue
+
         return read_catalogue(self.gateway, allow_empty=allow_empty)
 
 
 class OpenWebUI:
-    def __init__(self, api: API):
+    def __init__(self, api: API, snapshot=None):
         self.api = api
         self.owner_id = None
+        self.snapshot = snapshot
 
     def identity(self):
         if self.owner_id is None:
-            value = self.api.request("GET", "api/v1/auths/")
+            value = (
+                self.snapshot["identity"]
+                if self.snapshot
+                else self.api.request("GET", "api/v1/auths/")
+            )
             if (
                 not isinstance(value, dict)
                 or not isinstance(value.get("id"), str)
@@ -181,7 +187,14 @@ class OpenWebUI:
     def platform(self):
         from .capabilities import platform_snapshot
 
-        value = self.api.request("GET", "api/config")
+        if self.snapshot:
+            from .snapshot import current_platform
+
+            value = current_platform(
+                self.snapshot, self.api.request("GET", "api/v1/configs/export")
+            )
+        else:
+            value = self.api.request("GET", "api/config")
         return platform_snapshot(value)
 
     def tools(self):
@@ -283,7 +296,16 @@ class Session:
             self.close()
             raise
         self.sources = Sources(self.apis[0])
-        self.web = OpenWebUI(self.apis[1])
+        snapshot = None
+        if config.snapshot_path:
+            from .snapshot import read_snapshot
+
+            try:
+                snapshot = read_snapshot(config.snapshot_path, config.openwebui.token())
+            except BaseException:
+                self.close()
+                raise
+        self.web = OpenWebUI(self.apis[1], snapshot)
 
     def close(self):
         for api in self.apis:

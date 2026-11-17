@@ -46,3 +46,20 @@ enable unverified extended capabilities. Start a target model through the normal
 inference lifecycle before validating model-specific tools/vision, then sync
 again. Publication verification does not send inference; a separate acceptance
 request through OpenWebUI is needed to prove the inference path.
+
+## OpenWebUI 0.13.3 API-key boundary
+
+This version's session identity endpoint requires a human JWT, and `/api/config`
+returns only public fields for API keys. The host integration therefore adds a
+root `ExecStartPre` that reads the installed container's actual API-key owner and
+environment feature constants, and writes a root-owned, mode-640 snapshot under
+`/run/dai-openwebui-adapter`. Its metadata is bound to the credential hash and
+expires after ten minutes. No credential is printed or passed in Docker argv.
+The publisher still runs as the ordinary user. A tmpfiles rule recreates the
+protected runtime directory on boot.
+
+For every observation/revalidation it reads the admin-only config-export API
+with its API key, immediately selects the feature flags and audio declarations,
+and discards all unrelated data. Exported secrets never enter plans, markers,
+state or logs. The root snapshot supplies identity and environment-only flags;
+it never fabricates a human session or relaxes OpenWebUI authentication.
