@@ -1,3 +1,9 @@
+## 0.3.2
+
+- Normalize volatile OpenAI model creation timestamps in comparison copies only.
+- Recompute the derived description digest while retaining all semantic fields.
+- Preserve raw catalogue evidence; live polling no longer invalidates identical plans.
+
 ## 0.3.1
 
 - Add an authorized unattended sync wrapper: no actions means no apply call.

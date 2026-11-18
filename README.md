@@ -28,7 +28,7 @@
 配置：M3 完整声明 -> Agent Gateway 能力接口 -> 本组件 -> OpenWebUI 模型管理 API
 ```
 
-当前版本 **0.3.1** 默认 `publication.profile: auto`，逐模型协商，不再把视觉、工具等能力固定关闭。计划中同时显示模型与 OpenWebUI 的候选交集、实际网关链路能启用的交集，以及缺失声明/绑定的 TODO。`verified` 才进入交集，`unverified`、缺字段和 `unsupported` 不会因模型名称或 UI 默认值被提升。
+当前版本 **0.3.2** 默认 `publication.profile: auto`，逐模型协商，不再把视觉、工具等能力固定关闭。计划中同时显示模型与 OpenWebUI 的候选交集、实际网关链路能启用的交集，以及缺失声明/绑定的 TODO。`verified` 才进入交集，`unverified`、缺字段和 `unsupported` 不会因模型名称或 UI 默认值被提升。
 
 已授权的无人值守同步通过 `python -m dai_openwebui_adapter.sync --config adapter.yaml`
 执行：先计划，有差异才 apply，无差异完全不调用 apply，最后只读 verify。

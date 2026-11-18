@@ -25,6 +25,25 @@ def semantic_model(value):
             if isinstance(report, dict):
                 for timestamp in ("observed_at", "last_attempt_at"):
                     report.pop(timestamp, None)
+                # llama.cpp may emit a fresh OpenAI model `created` value on
+                # every /models GET. It is directory bookkeeping, not a change
+                # to model identity, capabilities or execution parameters.
+                description = report.get("description")
+                if isinstance(description, dict):
+                    model = description.get("model")
+                    if isinstance(model, dict):
+                        model.pop("created", None)
+                    if "description_digest" in report:
+                        # This hash is derived from description, including the
+                        # volatile timestamp. Retain a hash of all semantic data.
+                        report["description_digest"] = digest(description)
+                documents = report.get("source_documents")
+                models = documents.get("models") if isinstance(documents, dict) else None
+                rows = models.get("data") if isinstance(models, dict) else None
+                if isinstance(rows, list):
+                    for model in rows:
+                        if isinstance(model, dict):
+                            model.pop("created", None)
     return value
 
 
