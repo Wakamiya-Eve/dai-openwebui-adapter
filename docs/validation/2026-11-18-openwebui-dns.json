@@ -91,5 +91,167 @@
     "search_web": "passed in real cold-start UI conversations",
     "fetch_url": "failed URL validation; not yet accepted"
   },
-  "deployment_and_ui_acceptance": "pending"
+  "deployment_and_ui_acceptance": "passed: both models real search_web -> fetch_url -> final answer; no proxy/image/code changes",
+  "deployment": {
+    "observed_at": "2026-11-18T13:27:35.464557+00:00",
+    "commit": "675a06f0606701ffea6628cd17cee20ea4452b01",
+    "action": "apply",
+    "exit_code": 0,
+    "result": {
+      "ok": true,
+      "image_id": "sha256:8faf917243afee55e042b10ddc08ed6ae6fa9c62522c7e14d81e7cf2922325ae",
+      "runtime_preserved": true,
+      "dns_options": [
+        "no-aaaa"
+      ],
+      "fetch_probe": {
+        "ok": true,
+        "official_url": "https://docs.openwebui.com/features/chat-conversations/web-search/providers/searxng/",
+        "addresses": [
+          "28.0.0.37"
+        ],
+        "document_count": 1,
+        "content_characters": 12394,
+        "private_urls_blocked": [
+          "http://127.0.0.1/",
+          "http://169.254.169.254/",
+          "http://10.0.0.1/",
+          "http://[::1]/",
+          "http://[fc00::23]/"
+        ],
+        "local_web_fetch_enabled": false,
+        "inference_requested": false,
+        "configuration_changed": false
+      }
+    }
+  },
+  "ui_after_dns_change": {
+    "verified_at": "2026-11-18T13:35:23.198135+00:00",
+    "models": [
+      {
+        "model_ids": [
+          "swift15-q8-128k"
+        ],
+        "export_file": "chat-export-1795008755272.json",
+        "export_sha256": "031b76b79c9ee012c976a67ac65c7822ca6635e95a6a4ee6c86354051561e028",
+        "tools": [
+          {
+            "name": "search_web",
+            "status": "completed",
+            "duration_seconds": 2.7957148839486763,
+            "arguments": {
+              "query": "OpenWebUI SearXNG web search provider official documentation"
+            },
+            "result_count": 3,
+            "official_document_present": true
+          },
+          {
+            "name": "fetch_url",
+            "status": "completed",
+            "duration_seconds": 3.1453325069742277,
+            "arguments": {
+              "url": "https://docs.openwebui.com/features/chat-conversations/web-search/providers/searxng/"
+            },
+            "content_characters": 14045,
+            "content_sha256": "191f11374c0615291e4f7c73a6d93f78c4e6c2b62a19e7d59d79bac1b75ce485",
+            "error_present": false
+          }
+        ],
+        "passed": true
+      },
+      {
+        "model_ids": [
+          "muse-glimmer-30b-bf16"
+        ],
+        "export_file": "chat-export-1795008775359.json",
+        "export_sha256": "d3f07b9bc42662f852173e89a14c3498c5e7a353ae143899fcb65342bf143ceb",
+        "tools": [
+          {
+            "name": "search_web",
+            "status": "completed",
+            "duration_seconds": 2.7322974969865754,
+            "arguments": {
+              "query": "OpenWebUI SearXNG official documentation",
+              "count": 5
+            },
+            "result_count": 3,
+            "official_document_present": true
+          },
+          {
+            "name": "fetch_url",
+            "status": "completed",
+            "duration_seconds": 3.125209912075661,
+            "arguments": {
+              "url": "https://docs.openwebui.com/features/chat-conversations/web-search/providers/searxng/"
+            },
+            "content_characters": 14045,
+            "content_sha256": "191f11374c0615291e4f7c73a6d93f78c4e6c2b62a19e7d59d79bac1b75ce485",
+            "error_present": false
+          }
+        ],
+        "passed": true
+      }
+    ],
+    "screenshots": [
+      {
+        "file": "屏幕截图 2026-11-18 213130.png",
+        "sha256": "de70f347b59b9a146f106de83bd0ef9b0b5f5b93127fa931d70151a2d31f7097",
+        "visually_inspected": true
+      },
+      {
+        "file": "屏幕截图 2026-11-18 213313.png",
+        "sha256": "7fe9a9daeadd6190d55d3181f59dbb6e199d32b533b780772f2285c48bd4ecd3",
+        "visually_inspected": true
+      }
+    ],
+    "other_chat_and_memory_content_included": false
+  },
+  "final_lifecycle": {
+    "observed_at": "2026-11-18T13:33:55.114099+00:00",
+    "dai_commit": "c2d97b0a65141e289ed51415710d821e3bb308a8",
+    "jobs": [
+      {
+        "provider_id": "gpu13-muse-glimmer-30b-bf16",
+        "worker_version": "0.4.0",
+        "state": "running",
+        "selected_gpu_count": 4,
+        "admission_policy": "extreme",
+        "tensor_split": [
+          21672,
+          21672,
+          9065,
+          9031
+        ],
+        "extreme_constraints": {
+          "schema_version": "m2.extreme.v1",
+          "max_gpu_count": 4,
+          "safety_margin_ratio": 0.1,
+          "model_memory_budget_mib": 61440
+        }
+      },
+      {
+        "provider_id": "gpu14-swift15-q8",
+        "worker_version": "0.4.0",
+        "state": "running",
+        "selected_gpu_count": 3,
+        "admission_policy": "extreme",
+        "tensor_split": [
+          15869,
+          12973,
+          9000
+        ],
+        "extreme_constraints": {
+          "schema_version": "m2.extreme.v1",
+          "max_gpu_count": 4,
+          "safety_margin_ratio": 0.1,
+          "model_memory_budget_mib": 37842
+        }
+      }
+    ],
+    "tool_calling": {
+      "muse-glimmer-30b-bf16": "verified",
+      "swift15-q8-128k": "verified"
+    },
+    "inference_requested_by_query": false
+  }
 }

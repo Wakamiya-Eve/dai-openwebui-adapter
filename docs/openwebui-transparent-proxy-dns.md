@@ -1,8 +1,10 @@
 # OpenWebUI fetch_url behind the existing transparent proxy
 
-Status: deployment configuration approved on 2026-11-18; activation and actual UI
-fetch_url results are recorded separately. DAI capability configuration is already
-deployed. No adapter application release needs to be switched for this change.
+Status: deployed and accepted on 2026-11-18. Both Muse and Swift completed real
+OpenWebUI search_web and fetch_url calls and answered using the official document.
+Sanitized deployment and UI evidence is in
+validation/2026-11-18-openwebui-dns.json. DAI capability configuration is already
+deployed. No adapter application release was switched for this change.
 
 ## Observed failure and successful isolated test
 
@@ -18,16 +20,19 @@ generated each answer.
 A fresh diagnostic process with `RES_OPTIONS=no-aaaa` used the installed
 SafeWebBaseLoader successfully: one official document, 12,394 characters.
 127.0.0.1, 169.254.169.254 and 10.0.0.1 remained blocked. This is an isolated
-loader test; real UI `fetch_url` must still be verified after activation.
+loader test alone was insufficient for acceptance; both real UI `fetch_url`
+calls were subsequently verified after activation (14,045 content characters
+per tool output). The private-address checks also passed in the actual container.
 Evidence: CodexDesk history Q-20261118-001-fetch-ipv4-20261118T131430495143Z.json.
 
-## Proposed persistent configuration
+## Installed persistent configuration
 
 Install deploy/openwebui/compose.override.yaml beside the existing base file at
 /opt/open-webui-slim/compose.yaml. The actual Compose project is open-webui-slim,
 service open-webui, container open-webui-slim. Add only `dns_opt: [no-aaaa]`.
 Docker writes this resolver option into this container's resolv.conf. The
-installed glibc 2.41 supports it (available since 2.36).
+installed glibc 2.41 supports it (available since 2.36). The production recreation
+preserved the image ID, database mount, ports, network and environment.
 
 This preserves QWRT, DNS servers, host routing, SearXNG, image contents, database
 volume, model capabilities, URL filtering and TLS checks. It changes container
