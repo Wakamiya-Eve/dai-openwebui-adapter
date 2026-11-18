@@ -1,0 +1,7 @@
+# Optional N2830 workaround for synthetic private AAAA answers from upstream DNS.
+# Install beside /opt/open-webui-slim/compose.yaml only after explicit approval.
+# Preserve upstream DNS, routing, TLS and OpenWebUI's private-address checks.
+services:
+  open-webui:
+    dns_opt:
+      - no-aaaa

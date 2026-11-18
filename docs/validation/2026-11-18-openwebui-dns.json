@@ -1,0 +1,95 @@
+{
+  "observed_at": "2026-11-18T13:14:30.495077+00:00",
+  "openwebui_version": "0.13.3-slim",
+  "scope": "isolated diagnostic process; no running container configuration changed",
+  "temporary_res_options": "no-aaaa",
+  "test": {
+    "libc": [
+      "glibc",
+      "2.41"
+    ],
+    "enable_local_web_fetch": false,
+    "filter_list": [
+      "!169.254.169.254",
+      "!metadata.azure.com",
+      "!2001:1::1",
+      "!5f00::/16",
+      "!fd00:ec2::254",
+      "!2001:30::/28",
+      "!64:ff9b:1::/48",
+      "!192.88.99.0/24",
+      "!fec0::/10",
+      "!2001:20::/28",
+      "!metadata.google.internal",
+      "!::ffff:0:0:0/96",
+      "!224.0.0.0/4",
+      "!100.100.100.200",
+      "!ff00::/8",
+      "!100:0:0:1::/64",
+      "!168.63.129.16",
+      "!2001:1::2"
+    ],
+    "urls": [
+      {
+        "url": "https://docs.openwebui.com/features/chat-conversations/web-search/providers/searxng/",
+        "addresses": [
+          "28.0.0.37"
+        ],
+        "valid": true,
+        "loader": "SafeWebBaseLoader",
+        "document_count": 1,
+        "content_characters": 12394,
+        "sources": [
+          "https://docs.openwebui.com/features/chat-conversations/web-search/providers/searxng/"
+        ]
+      },
+      {
+        "url": "https://github.com/open-webui/open-webui",
+        "addresses": [
+          "28.0.0.10"
+        ],
+        "valid": true
+      },
+      {
+        "url": "http://127.0.0.1/",
+        "addresses": [
+          "127.0.0.1"
+        ],
+        "valid": false,
+        "error_type": "ValueError"
+      },
+      {
+        "url": "http://169.254.169.254/",
+        "addresses": [
+          "169.254.169.254"
+        ],
+        "valid": false,
+        "error_type": "ValueError"
+      },
+      {
+        "url": "http://10.0.0.1/",
+        "addresses": [
+          "10.0.0.1"
+        ],
+        "valid": false,
+        "error_type": "ValueError"
+      }
+    ]
+  },
+  "compose": {
+    "com.docker.compose.project": "open-webui-slim",
+    "com.docker.compose.service": "open-webui",
+    "com.docker.compose.project.working_dir": "/opt/open-webui-slim",
+    "com.docker.compose.project.config_files": "/opt/open-webui-slim/compose.yaml"
+  },
+  "current_dns_options": null,
+  "ui_before_dns_change": {
+    "models": [
+      "Muse",
+      "Swift"
+    ],
+    "search_web": "passed in real cold-start UI conversations",
+    "fetch_url": "failed URL validation; not yet accepted"
+  },
+  "deployment_and_ui_acceptance": "pending"
+}
