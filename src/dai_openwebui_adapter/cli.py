@@ -43,11 +43,17 @@ def main(argv=None) -> int:
         "rollback", help="restore updates and disable newly created entries"
     )
     restore.add_argument("--journal", required=True)
+    names = commands.add_parser("sync-status", help="review or apply name-only runtime status updates")
+    names.add_argument("--apply", action="store_true")
     args = parser.parse_args(argv)
     try:
         config = load_config(args.config)
         with Session(config) as session:
-            if args.command == "plan":
+            if args.command == "sync-status":
+                from .runtime_names import sync_names
+
+                result = sync_names(config, session, apply=args.apply)
+            elif args.command == "plan":
                 result = observe(config, session).plan
                 if args.output:
                     write_json(args.output, result)

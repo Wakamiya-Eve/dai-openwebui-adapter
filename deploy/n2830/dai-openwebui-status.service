@@ -1,0 +1,30 @@
+[Unit]
+Description=Synchronize DAI runtime display names into OpenWebUI
+Wants=network-online.target agent-career-hub-gateway.service docker.service
+After=network-online.target agent-career-hub-gateway.service docker.service systemd-tmpfiles-setup.service
+
+[Service]
+Type=oneshot
+User=kms0723online
+Group=kms0723online
+WorkingDirectory=/opt/dai-openwebui-adapter/current
+Environment=PYTHONPATH=/opt/dai-openwebui-adapter/current/src
+Environment=PYTHONNOUSERSITE=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+EnvironmentFile=/etc/dai-openwebui-adapter/credentials.env
+UnsetEnvironment=PYTHONHOME
+ExecStartPre=+/opt/dai-openwebui-adapter/venv/bin/python -m dai_openwebui_adapter.host_snapshot --config /etc/dai-openwebui-adapter/adapter.yaml
+ExecStartPre=/opt/dai-openwebui-adapter/venv/bin/python -m dai_openwebui_adapter.ready --config /etc/dai-openwebui-adapter/adapter.yaml
+ExecStart=/opt/dai-openwebui-adapter/venv/bin/python -m dai_openwebui_adapter --config /etc/dai-openwebui-adapter/adapter.yaml sync-status --apply
+TimeoutStartSec=150s
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/n2830-data/app-data/dai-openwebui-adapter
+ReadWritePaths=/run/dai-openwebui-adapter
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

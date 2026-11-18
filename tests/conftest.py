@@ -108,6 +108,9 @@ class Server:
                                           "interfaces": (serving or {}).get("interfaces", {}),
                                           "limits": {"context_tokens": 131072},
                                           "parameters": {"defaults": {"repeat_penalty": 1.1}}}})
+                if serving and "runtime" in serving:
+                    raw[-1]["runtime"] = deepcopy(serving["runtime"])
+                    views[-1].update(base_name=serving["base_name"], runtime=deepcopy(serving["runtime"]))
             return httpx.Response(200, json={
                 "schema_version": "m4.capability-catalogue.v1", "registry_revision": "test-revision",
                 "upstream": {"schema_version": "m3.capability-catalogue.v1", "data": raw,

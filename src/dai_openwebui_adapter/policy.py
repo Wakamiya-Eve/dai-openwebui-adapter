@@ -6,6 +6,7 @@ from copy import deepcopy
 
 from .config import Config
 from .errors import Conflict
+from .names import display_name
 from .model import MANAGER, POLICY, COMPATIBLE_POLICIES, digest, marker, valid_id
 
 
@@ -40,7 +41,7 @@ def patch(config: Config, model: dict, base_id: str, kind: str, negotiated: dict
     return {
         "id": mid_out,
         "base_model_id": None if kind == "base_override" else base_id,
-        "name": model["name"] + (" · Chat" if kind == "workspace_preset" else ""),
+        "name": display_name(model.get("display_base_name", model["name"]), kind, model.get("runtime_label")),
         "meta": {
             "capabilities": deepcopy(negotiated["openwebui_capabilities"]),
             "builtinTools": deepcopy(negotiated["builtinTools"]),

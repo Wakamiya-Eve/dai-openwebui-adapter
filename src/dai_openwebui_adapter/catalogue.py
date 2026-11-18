@@ -4,6 +4,7 @@ from copy import deepcopy
 
 from .errors import AdapterError, Conflict
 from .model import digest, valid_id
+from .names import runtime_label
 
 SCHEMA = "m4.capability-catalogue.v1"
 STATES = {"verified", "unverified", "unsupported"}
@@ -12,6 +13,7 @@ STATES = {"verified", "unverified", "unsupported"}
 def semantic_model(value):
     """Exclude only known polling bookkeeping; retain all capability extensions."""
     value = deepcopy(value)
+    value.pop("runtime", None)
     for provider in value.get("providers", []):
         provider.pop("last_known_collected_at", None)
         for key in ("attempted_at", "age_seconds"):
@@ -90,6 +92,9 @@ def read_catalogue(api, *, allow_empty=False):
         stable = deepcopy(page)
         stable["upstream"].pop("generated_at", None)
         stable["upstream"]["data"] = [semantic_model(row) for row in upstream["data"]]
+        for view in stable.get("data", []):
+            if isinstance(view.get("runtime"), dict):
+                view["runtime"].pop("observed_at", None)
         pages.append(stable)
         for index, (view, raw) in enumerate(zip(views, upstream["data"])):
             if (
@@ -107,7 +112,7 @@ def read_catalogue(api, *, allow_empty=False):
                 raise AdapterError("L4 serving declaration is invalid")
             model_caps = states(gateway.get("model_capabilities"))
             route_caps = states(gateway.get("capabilities"))
-            name = (raw.get("model") or {}).get("display_name") or mid
+            name = view.get("name") or (raw.get("model") or {}).get("display_name") or mid
             if not isinstance(name, str):
                 raise AdapterError("Invalid model display name")
             gateway = deepcopy(gateway)
@@ -134,6 +139,9 @@ def read_catalogue(api, *, allow_empty=False):
                     raw
                 ),  # Full data remains available to the adapter, not published as prompts.
             }
+            if "runtime" in view:
+                models[mid]["display_base_name"] = view.get("base_name") or (raw.get("model") or {}).get("display_name") or mid
+                models[mid]["runtime_label"] = runtime_label(view["runtime"])
         next_offset = page.get("next_offset")
         if next_offset is None:
             if len(models) != total:

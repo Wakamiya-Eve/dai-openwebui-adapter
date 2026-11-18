@@ -1,0 +1,8 @@
+{
+  "web.search.enable": true,
+  "web.search.engine": "searxng",
+  "web.search.searxng_query_url": "http://dai-search:8080/search?q=<query>&format=json",
+  "web.search.result_count": 3,
+  "web.search.bypass_embedding_and_retrieval": true,
+  "web.search.bypass_web_loader": false
+}

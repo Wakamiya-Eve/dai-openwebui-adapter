@@ -176,3 +176,9 @@ CLI 自身不安装/启动 systemd 服务，不配置反向代理，也不改变
 - [Voice Mode](https://docs.openwebui.com/features/chat-conversations/chat-features/voice-mode/)：标准语音与 Realtime 的区别。
 
 [tests/fixtures/openwebui_slim_contract.json](tests/fixtures/openwebui_slim_contract.json) 记录 2026-11-17 本机只读源码审计的字段、路由和文件哈希。它是本版契约快照，不含数据库内容、凭据或聊天；未来镜像升级需重查字段，不能单凭 image tag 认定兼容。
+
+Runtime names use the separate [name-only reconciler](deploy/n2830/runtime-status.md)
+and proposed 30-second timer; the daily capability timer stays unchanged.
+The [standalone SearXNG preparation](deploy/searxng/README.md) provides reviewed
+configuration templates for native search on OpenWebUI slim without rebuilding
+its image. These additions have not been deployed to production.

@@ -1,0 +1,9 @@
+use_default_settings: true
+general:
+  instance_name: DAI private search
+search:
+  formats: [html, json]
+server:
+  limiter: false
+  public_instance: false
+  image_proxy: false
