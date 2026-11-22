@@ -28,7 +28,7 @@
 配置：M3 完整声明 -> Agent Gateway 能力接口 -> 本组件 -> OpenWebUI 模型管理 API
 ```
 
-当前版本 **0.3.2** 默认 `publication.profile: auto`，逐模型协商，不再把视觉、工具等能力固定关闭。计划中同时显示模型与 OpenWebUI 的候选交集、实际网关链路能启用的交集，以及缺失声明/绑定的 TODO。`verified` 才进入交集，`unverified`、缺字段和 `unsupported` 不会因模型名称或 UI 默认值被提升。
+当前版本 **0.4.1** 默认 `publication.profile: auto`，逐模型协商，不再把视觉、工具等能力固定关闭。计划中同时显示模型与 OpenWebUI 的候选交集、实际网关链路能启用的交集，以及缺失声明/绑定的 TODO。`verified` 才进入交集，`unverified`、缺字段和 `unsupported` 不会因模型名称或 UI 默认值被提升。
 
 已授权的无人值守同步通过 `python -m dai_openwebui_adapter.sync --config adapter.yaml`
 执行：先计划，有差异才 apply，无差异完全不调用 apply，最后只读 verify。
@@ -178,7 +178,10 @@ CLI 自身不安装/启动 systemd 服务，不配置反向代理，也不改变
 [tests/fixtures/openwebui_slim_contract.json](tests/fixtures/openwebui_slim_contract.json) 记录 2026-11-17 本机只读源码审计的字段、路由和文件哈希。它是本版契约快照，不含数据库内容、凭据或聊天；未来镜像升级需重查字段，不能单凭 image tag 认定兼容。
 
 Runtime names use the separate [name-only reconciler](deploy/n2830/runtime-status.md)
-and proposed 30-second timer; the daily capability timer stays unchanged.
-The [standalone SearXNG preparation](deploy/searxng/README.md) provides reviewed
-configuration templates for native search on OpenWebUI slim without rebuilding
-its image. These additions have not been deployed to production.
+and the 30-second status timer. N2830's 2026-11-21 production audit confirms this
+timer is scheduled and the service is loaded; it is a required business path, not
+a disabled development template. The status pre-step reuses a validated,
+credential-bound Host Snapshot for up to 360 seconds, while the daily capability
+publisher continues to force a fresh Snapshot. Neither timer cadence changes.
+The [standalone SearXNG integration](deploy/searxng/README.md) and OpenWebUI URL
+fetch DNS workaround have separate N2830 deployment and acceptance evidence.

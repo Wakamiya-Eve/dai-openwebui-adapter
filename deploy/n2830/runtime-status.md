@@ -1,7 +1,9 @@
 # Name-only runtime status synchronization
 
-Development templates only: this service/timer has not been installed or enabled.
-The existing 24-hour capability timer is unchanged.
+N2830 production audit (2026-11-21) found this runtime-name service loaded and its
+30-second timer scheduled with a recent last trigger. The 30-second status path is
+an established production business function and must remain enabled. The existing
+24-hour capability timer is separate and unchanged.
 
 L4 Gateway `/v1/models` owns canonical base names and runtime observations.
 OpenWebUI saves both base overrides and workspace presets, whose names override
@@ -18,9 +20,15 @@ The command defaults to review mode:
 python -m dai_openwebui_adapter --config /path/to/adapter.yaml sync-status
 ```
 
-An explicit `--apply` enables writes. The future installed service obtains the
-existing private credential-bound host snapshot using the standard root
-pre-step, then performs HTTP reads/writes as the existing service user. It does
+An explicit `--apply` enables writes. The N2830 status service obtains the private credential-bound host snapshot using
+the root pre-step, then performs HTTP reads/writes as the existing service user.
+For status runs only, the pre-step uses `--reuse-if-fresh --reuse-max-age-seconds 360`.
+It reuses a snapshot only when its schema, root-owned file permissions, administrator
+identity, credential fingerprint and freshness all validate. At 360 seconds it
+refreshes; the reader's hard expiry remains 600 seconds. A root-only `flock` serializes
+status and daily snapshot generation, and the cache is checked again after acquiring
+the lock. The daily capability service deliberately invokes the pre-step without
+reuse flags, so each daily full publication still forces a fresh environment audit. It does
 not create credentials or call inference/Worker lifecycle endpoints. Connection
 origin, identity and ownership are revalidated. Only existing managed records
 are updated; unknown/unmanaged records are never renamed or created.
@@ -44,7 +52,8 @@ observation timestamps from capability digests, so the two paths agree and
 polling alone does not cause capability rewrites. Neither path removes an offline
 model or prevents a conversation from using the standard cold-start chain.
 
-A future deployment needs Worker 0.4.0, the matching M3 runtime collector,
-L4 Gateway runtime names and adapter 0.4.0. Older Workers produce Unknown.
-Keep the two new units disabled until that rollout is explicitly authorized.
-Use the existing `rollback --journal` command for failed name-only updates.
+The N2830 production audit includes Worker 0.4.0 on the tested GPU13/GPU14 paths,
+and the status timer is already scheduled in production. Do not disable the status
+timer to reduce Snapshot load; use the cache path described above. Older Workers or
+stale/unconfirmed runtime evidence continue to produce Unknown. Use the existing
+`rollback --journal` command for failed name-only updates.

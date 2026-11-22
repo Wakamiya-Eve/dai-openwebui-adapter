@@ -13,7 +13,7 @@ Environment=PYTHONNOUSERSITE=1
 Environment=PYTHONDONTWRITEBYTECODE=1
 EnvironmentFile=/etc/dai-openwebui-adapter/credentials.env
 UnsetEnvironment=PYTHONHOME
-ExecStartPre=+/opt/dai-openwebui-adapter/venv/bin/python -m dai_openwebui_adapter.host_snapshot --config /etc/dai-openwebui-adapter/adapter.yaml
+ExecStartPre=+/opt/dai-openwebui-adapter/venv/bin/python -m dai_openwebui_adapter.host_snapshot --config /etc/dai-openwebui-adapter/adapter.yaml --reuse-if-fresh --reuse-max-age-seconds 360
 ExecStartPre=/opt/dai-openwebui-adapter/venv/bin/python -m dai_openwebui_adapter.ready --config /etc/dai-openwebui-adapter/adapter.yaml
 ExecStart=/opt/dai-openwebui-adapter/venv/bin/python -m dai_openwebui_adapter --config /etc/dai-openwebui-adapter/adapter.yaml sync-status --apply
 TimeoutStartSec=150s

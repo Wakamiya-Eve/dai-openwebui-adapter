@@ -1,3 +1,9 @@
+## 0.4.1
+
+- Reuse validated root-issued OpenWebUI snapshots during 30-second runtime-name synchronization.
+- Refresh status snapshots after six minutes; keep the 600-second reader expiry and serialize refreshes.
+- Preserve forced Snapshot refresh for the daily capability publication path.
+
 ## 0.3.2
 
 - Normalize volatile OpenAI model creation timestamps in comparison copies only.

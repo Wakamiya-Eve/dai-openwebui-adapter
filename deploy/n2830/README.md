@@ -31,6 +31,23 @@ also runs the enabled oneshot. A completed oneshot normally reports `inactive
 (dead)` with `Result=success`, while the timer remains `active (waiting)`.
 No `RemainAfterExit` is used, so the timer can invoke it again.
 
+
+## Runtime-name status synchronization
+
+N2830 also runs the separate `dai-openwebui-status.timer` as a production path.
+Its `OnBootSec=45s` and `OnUnitInactiveSec=30s` cadence is intentional: it
+keeps the OpenWebUI model names synchronized with Online/Offline/Unknown runtime
+state. Do not disable this timer as a Snapshot performance workaround.
+
+The status service runs the root Snapshot pre-step in cache mode:
+`--reuse-if-fresh --reuse-max-age-seconds 360`. A fresh credential-bound
+Snapshot is reused; after 360 seconds it is regenerated. The Snapshot reader's
+hard expiry remains 600 seconds. A root-only lock serializes status refreshes
+with the daily capability service. The daily capability service does not pass
+the reuse flag and therefore continues to force a fresh Snapshot for each full
+capability publication. This optimization does not change either timer cadence,
+the name-only write scope, or the daily capability reconciliation.
+
 Manual run: `systemctl start dai-openwebui-adapter.service`.
 Inspect: `systemctl status dai-openwebui-adapter.timer` and
 `journalctl -u dai-openwebui-adapter.service`.
